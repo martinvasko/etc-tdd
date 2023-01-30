@@ -5,15 +5,15 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./coinanalyzer
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
-        working-directory: ./coinanalyzer
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
       - name: Build with Maven
-        working-directory: ./coinanalyzer
         run: mvn --batch-mode --update-snapshots package
