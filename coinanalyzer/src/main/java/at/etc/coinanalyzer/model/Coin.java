@@ -67,8 +67,8 @@ public class Coin {
             for (Object o : jsonArray) {
                 String name = ((JSONObject) o).getString("name");
                 String symbol = ((JSONObject) o).getString("symbol");
-                double price = ((JSONObject) o).getJSONObject("quote").getJSONObject("USD").getDouble("price");
-                double percentage = ((JSONObject) o).getJSONObject("quote").getJSONObject("USD").getDouble("percent_change_24h");
+                double price = ((JSONObject) o).getDouble("price");
+                double percentage = ((JSONObject) o).getDouble("percentage");
 
                 //init & remember
                 Coin c = new CoinBuilder(symbol, name)
