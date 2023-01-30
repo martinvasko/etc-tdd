@@ -1,0 +1,8 @@
+# IDE Setup
+.idea/
+/coinanalyzer/target/
+/hellocucumber/target/
+/JGivenSample/target/
+/JUnitSample/target/
+/spring-boot/target/
+/spring-boot-tdd/target/

@@ -1,0 +1,996 @@
+{
+	"info": {
+		"_postman_id": "b6f22d43-2a6f-4ee3-a12e-617127987caf",
+		"name": "Check for Common API Vulnerabilities",
+		"description": "## What does this collection do?\nThis collection will check your APIs for the following things:\n###### Security Vulnerabilities\n- [CORS Misconfigurations](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)\n- [Directory Traversal](https://portswigger.net/web-security/file-path-traversal)\n- [SQL Injection](https://portswigger.net/web-security/sql-injection)\n- [Authentication](https://portswigger.net/web-security/authentication)\n\n###### Security Headers\n- [Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)\n- [X-Frame-Options](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)\n- [Strict-Transport-Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)\n- [X-XSS-Protection](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection)\n\n###### [Content Secure Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)\n\n## Requirements\nDefine the following Variables in the **Check for Common API Vulnerabilities** environment.\n\n- API's base URL you want to test in the `base_url` variable\n- Suspicious or Foreign Origin for which you want to test in `malicious_origin` variable\n- Add unauthorised subdomain URL in the `sub_domain_url` variable\n- Key name that will contain the access token in `access_token_key` variable, default is `x-access-token` \n- Valid access token to access the API in `valid_access_token_value ` variable\n- Expired access token in `expired_access_token_value ` variable\n- Other User's valid access token in `other_user_access_token_value` variable\n- The key that is used to send user id OR name in the `param_key` variable\n- The value in the `param_value` variable for the **key** mentioned in the `param_key`\n\n## Using the Collection\nOnce configured, run the collection within the `Runner` with the relevant environment selected.\n\n## Results\nAt the end of the run, you'll get the test results. Failed tests could mean that the API is vulnerable to an attack. Check out the `Visualize` tab to learn more about the test results.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "CORS Misconfiguration",
+			"item": [
+				{
+					"name": "Basic Origin Reflection Test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"checks vulnerability with basic origin reflection\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Origin\")).not.equal(pm.environment.get(\"malicious_origin\"))",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Credentials\")).to.be.oneOf([undefined,'false'])",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin:16px 32px;\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text:",
+									"      'If this test fails then it means that maybe any domain can access resources or sensitive information from your domain',",
+									"      link:\"https://portswigger.net/web-security/cors\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{malicious_origin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API is vulnerable to untrusted origins. It passes Suspicious or Foreign Origin in the Headers and checks if the APIs accept the request from that Origin."
+					},
+					"response": []
+				},
+				{
+					"name": "Trusted null Origin Test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"checks vulnerability with trusted null origin\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Origin\")).not.equal(\"null\")",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Credentials\")).to.be.oneOf([undefined,'false'])",
+									"});",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text:",
+									"      'If this test fails then it means that maybe any domain can access resources or sensitive information from your domain by passing \"Origin\" as \"null\"',",
+									"      link:\"https://portswigger.net/web-security/cors\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "null",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API is vulnerable to null origin. It passes `null` in the Origin Header and checks if the API is accepting requests from `null` Origin or not. [learn more](https://portswigger.net/web-security/cors#:~:text=Whitelisted%20null%20origin%20value,Requests%20from%20serialized%20data.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Trusted Unauthorised Subdomain Test",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"checks vulnerability with trusted insecure protocols\", function() {",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Origin\")).not.equal(pm.variables.get(\"sub_domain_url\"))",
+									"    pm.expect(pm.response.headers.get(\"Access-Control-Allow-Credentials\")).to.be.oneOf([undefined,'false'])",
+									"});",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text:",
+									"      'If this test fails then it means that maybe the API allows access to an unsecured sub domains',",
+									"      link:\"https://portswigger.net/web-security/cors\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{sub_domain_url}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if your URL trusts unsecured subdomains as origins. It passes an unsecured domain URL that can be defined in the Environment variables in the Origin Header and checks if the API is accepting requests from that subdomain or not."
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the following request to check for the possible CORS misconfiguration in the APIs.\n- Basic origin reflection test\n- Trusted null origin test\n- Trusted unauthorised subdomain test\n\nTo learn more, visit [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)"
+		},
+		{
+			"name": "Security Headers",
+			"item": [
+				{
+					"name": "Check for Security Headers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('checks for Content-Security-Policy header', function () {",
+									"  pm.expect(pm.response.headers.get('Content-Security-Policy')).not.equal(undefined);",
+									"});",
+									"pm.test(\"checks for X-Frame-Options header\", function() {",
+									"    const header = pm.response.headers.get(\"X-Frame-Options\")||\"\"",
+									"    pm.expect(header).equal('DENY')",
+									"});",
+									"",
+									"pm.test(\"checks for Strict-Transport-Security header\", function() {",
+									"    const header = pm.response.headers.get(\"Strict-Transport-Security\")||\"\"",
+									"    pm.expect(header.toLowerCase()).contains(\"max-age\")",
+									"});",
+									"",
+									"pm.test(\"checks for X-XSS-Protection header\", function() {",
+									"    pm.expect(pm.response.headers.get(\"X-XSS-Protection\")).not.equal(undefined)",
+									"});",
+									"",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text:",
+									"      'This request checks for the security headers in the response',",
+									"      link:\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers\"",
+									"  });",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks for the following **Security Headers** in the **Response Headers** of the API.\n- [**Content-Security-Policy**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)\n- [**X-Frame-Options**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)\n- [**Strict-Transport-Security**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)\n- [**X-XSS-Protection**](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection)"
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the request to check if the API has defined proper **Security Headers** to make it more secure and reliable."
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Check response with valid access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = \"API is working as expected with a valid token\";",
+									"",
+									"pm.test(\"checks for response with valid access token\", function() {",
+									"    if(pm.response.code !== 200){",
+									"      text = \"Maybe your API is not working as expected with a valid token\"",
+									"    }",
+									"    pm.response.to.have.status(200)",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text:text",
+									"  });",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "{{access_token_key}}",
+								"value": "{{valid_access_token_value}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API is working as expected by passing valid access token."
+					},
+					"response": []
+				},
+				{
+					"name": "Checks response for expired access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = \"Your API is safe from broken authentication vulnerabilities\"",
+									"pm.test(\"checks for response with expired access token\", function() {",
+									"    if(pm.response.code !== 401 && pm.response.code !== 403 ){",
+									"      text = \"Maybe your API is vulnerable to broken authentication vulnerabilities\"",
+									"    }",
+									"    pm.expect(pm.response.code).to.be.oneOf([401,403])",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text: text,",
+									"    link:\"https://auth0.com/blog/what-is-broken-authentication/\"",
+									"  });",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "{{access_token_key}}",
+								"value": "{{expired_access_token_value}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API is accessible by passing expired token."
+					},
+					"response": []
+				},
+				{
+					"name": "Check response without access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = \"Your API is safe from broken authentication vulnerabilities\"",
+									"pm.test(\"checks for response without access token\", function() {",
+									"    if(pm.response.code !== 401 && pm.response.code !== 403 ){",
+									"      text = \"Maybe your API is vulnerable to broken authentication vulnerabilities\"",
+									"    }",
+									"    pm.expect(pm.response.code).to.be.oneOf([401,403])",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text: text,",
+									"    link:\"https://auth0.com/blog/what-is-broken-authentication/\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API is accessible without passing access token."
+					},
+					"response": []
+				},
+				{
+					"name": "Check response with other users access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = \"Your API is safe from broken authentication vulnerabilities\"",
+									"pm.test(\"checks for response with other user's access token\", function() {",
+									"    if(pm.response.code !== 401 && pm.response.code !== 403 ){",
+									"      text = \"Maybe your API is vulnerable to broken authentication vulnerabilities\"",
+									"    }",
+									"    pm.expect(pm.response.code).to.be.oneOf([401,403])",
+									"});",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"    text: text,",
+									"    link:\"https://auth0.com/blog/what-is-broken-authentication/\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "{{access_token_key}}",
+								"value": "{{other_user_access_token_value}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the API returns the information for a user with some other user's access token."
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the requests to checks the APIs for **Authentication Vulnerabilities** \n\nTo learn more, visit [here](https://portswigger.net/web-security/authentication)"
+		},
+		{
+			"name": "Directory Traversal",
+			"item": [
+				{
+					"name": "Check vulnerability with relative path",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var _ = require('lodash');",
+									"",
+									"function urlJoin(a, b) {",
+									"  return _.trimEnd(a, '/') + '/' + _.trimStart(b, '/');",
+									"}",
+									"let templateValue =  {",
+									"    text:",
+									"      \"Your API is safe from directory traversal attacks\",",
+									"      link:\"https://portswigger.net/web-security/file-path-traversal\"",
+									"  }",
+									"pm.test(\"checks vulnerability with relative path\", function () {",
+									"    const response = cheerio.load(pm.response.text(), {",
+									"        ignoreWhitespace: true,",
+									"        xmlMode: true",
+									"    });",
+									"",
+									"    const imageTags = Object.values(response(\"img\"));",
+									"    let vulnerableResource = \"\";",
+									"    for (var i = 0; i < imageTags.length; i++) {",
+									"        if (imageTags[i].type === \"tag\" && imageTags[i].name === \"img\") {",
+									"            const src = imageTags[i].attribs.src;",
+									"            if (src && src.indexOf(\"cdn\") === -1 && src.indexOf(\"?\") !== -1) {",
+									"                vulnerableResource = src;",
+									"                break;",
+									"            }",
+									"        }",
+									"    }",
+									"    vulnerableResource = vulnerableResource.substr(0, vulnerableResource.lastIndexOf(\"=\") + 1)",
+									"",
+									"    const pathsToCheck = [",
+									"        '../../../etc/passwd',",
+									"        '../../../etc/shadow',",
+									"        '../../../etc/hosts',",
+									"        '../../../etc/profile',",
+									"        '../../../etc/apache2/httpd.conf',",
+									"        '../../../windows/win.ini',",
+									"        '../../../../../windows/system.ini',",
+									"        '../../../var/www/html/admin/get.inc',",
+									"        '../../../var/www/html/get.php'",
+									"    ]",
+									"",
+									"    for(var i=0; i<pathsToCheck.length; i++){",
+									"        const vulnerable_url = urlJoin(urlJoin(pm.environment.get(\"base_url\"),vulnerableResource),pathsToCheck[i])",
+									"",
+									"        pm.sendRequest(vulnerable_url, function (err, value) {",
+									"            if (value) {",
+									"                pm.expect(value.code).to.not.equal(200);",
+									"                if(value.code === \"200\"){",
+									"                templateValue.text = `Maybe your API is vulnerable to directory traversal attacks. vulnerability fount at this endpoint ${vulnerable_url}`",
+									"                }",
+									"            }",
+									"        });",
+									"    }",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,templateValue);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the APIs allows an attacker to access file present in the server by passing relative path of the files."
+					},
+					"response": []
+				},
+				{
+					"name": "Check vulnerability with absolute path",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var _ = require('lodash');",
+									"",
+									"function urlJoin(a, b) {",
+									"  return _.trimEnd(a, '/') + '/' + _.trimStart(b, '/');",
+									"}",
+									"let templateValue =  {",
+									"    text:",
+									"      \"Your API is safe from directory traversal attacks\",",
+									"      link:\"https://portswigger.net/web-security/file-path-traversal\"",
+									"  }",
+									"",
+									"    const response = cheerio.load(pm.response.text(), {",
+									"        ignoreWhitespace: true,",
+									"        xmlMode: true",
+									"    });",
+									"",
+									"    const imageTags = Object.values(response(\"img\"));",
+									"    let vulnerableResource = \"\";",
+									"    for (var i = 0; i < imageTags.length; i++) {",
+									"        if (imageTags[i].type === \"tag\" && imageTags[i].name === \"img\") {",
+									"            const src = imageTags[i].attribs.src;",
+									"            if (src && src.indexOf(\"cdn\") === -1 && src.indexOf(\"?\") !== -1) {",
+									"                vulnerableResource = src;",
+									"                break;",
+									"            }",
+									"        }",
+									"    }",
+									" ",
+									"    vulnerableResource = vulnerableResource.substr(0, vulnerableResource.lastIndexOf(\"=\") + 1)",
+									"",
+									"    const vulnerable_url = urlJoin(urlJoin(pm.environment.get(\"base_url\"),vulnerableResource),\"/etc/passwd\")",
+									"    pm.sendRequest(vulnerable_url, function (err, value) {",
+									"        if (value) {",
+									"            if(value.code === 200){",
+									"            templateValue.text = `Maybe your API is vulnerable to directory traversal attacks. vulnerability fount at this endpoint ${vulnerable_url}`",
+									"            }",
+									"            pm.test(\"checks vulnerability with absolute path\", function () {",
+									"                pm.expect(value.code).to.not.equal(200);",
+									"            });",
+									"        }",
+									"    })",
+									"",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,templateValue);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the APIs allows an attacker to access file present in the server by passing absolute path of the files."
+					},
+					"response": []
+				},
+				{
+					"name": "Check vulnerability with sequences stripped non-recursively",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var _ = require('lodash');",
+									"",
+									"function urlJoin(a, b) {",
+									"  return _.trimEnd(a, '/') + '/' + _.trimStart(b, '/');",
+									"}",
+									"",
+									"let templateValue =  {",
+									"    text:",
+									"      \"Your API is safe from directory traversal attacks\",",
+									"      link:\"https://portswigger.net/web-security/file-path-traversal\"",
+									"  }",
+									"",
+									"    const response = cheerio.load(pm.response.text(), {",
+									"        ignoreWhitespace: true,",
+									"        xmlMode: true",
+									"    });",
+									"",
+									"    const imageTags = Object.values(response(\"img\"));",
+									"    let vulnerableResource = \"\";",
+									"    for (var i = 0; i < imageTags.length; i++) {",
+									"        if (imageTags[i].type === \"tag\" && imageTags[i].name === \"img\") {",
+									"            const src = imageTags[i].attribs.src;",
+									"            if (src && src.indexOf(\"cdn\") === -1 && src.indexOf(\"?\") !== -1) {",
+									"                vulnerableResource = src;",
+									"                break;",
+									"            }",
+									"        }",
+									"    }",
+									" ",
+									"    vulnerableResource = vulnerableResource.substr(0, vulnerableResource.lastIndexOf(\"=\") + 1)",
+									"    const vulnerable_url = urlJoin(urlJoin(pm.environment.get(\"base_url\"),vulnerableResource),\"....//....//....//etc/passwd\")",
+									"    pm.sendRequest(vulnerable_url, function (err, value) {",
+									"        if (value) {",
+									"            if(value.code === 200){",
+									"            templateValue.text = `Maybe your API is vulnerable to directory traversal attacks. vulnerability fount at this endpoint ${vulnerable_url}`",
+									"            }",
+									"            pm.test(\"checks vulnerability with sequences stripped non-recursively\", function () {",
+									"                pm.expect(value.code).to.not.equal(200);",
+									"            });",
+									"        }",
+									"    })",
+									"",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,templateValue);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the APIs allows an attacker to access file present in the server by passing the file path having nested traversal sequences such as `....//` or `....\\/` to access the file"
+					},
+					"response": []
+				},
+				{
+					"name": "Check vulnerability for sequences stripped with superfluous URL-decode",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var _ = require('lodash');",
+									"",
+									"function urlJoin(a, b) {",
+									"  return _.trimEnd(a, '/') + '/' + _.trimStart(b, '/');",
+									"}",
+									"",
+									"let templateValue =  {",
+									"    text:",
+									"      \"Your API is safe from directory traversal attacks\",",
+									"      link:\"https://portswigger.net/web-security/file-path-traversal\"",
+									"  }",
+									"",
+									"    const response = cheerio.load(pm.response.text(), {",
+									"        ignoreWhitespace: true,",
+									"        xmlMode: true",
+									"    });",
+									"",
+									"    const imageTags = Object.values(response(\"img\"));",
+									"    let vulnerableResource = \"\";",
+									"    for (var i = 0; i < imageTags.length; i++) {",
+									"        if (imageTags[i].type === \"tag\" && imageTags[i].name === \"img\") {",
+									"            const src = imageTags[i].attribs.src;",
+									"            if (src && src.indexOf(\"cdn\") === -1 && src.indexOf(\"?\") !== -1) {",
+									"                vulnerableResource = src;",
+									"                break;",
+									"            }",
+									"        }",
+									"    }",
+									" ",
+									"    vulnerableResource = vulnerableResource.substr(0, vulnerableResource.lastIndexOf(\"=\") + 1)",
+									"",
+									"    const vulnerable_url = urlJoin(urlJoin(pm.environment.get(\"base_url\"),vulnerableResource),\"..%252f..%252f..%252fetc/passwd\")",
+									"    ",
+									"    pm.sendRequest(vulnerable_url, function (err, value) {",
+									"        if (value) {",
+									"            if(value.code === 200){",
+									"            templateValue.text = `Maybe your API is vulnerable to directory traversal attacks. vulnerability fount at this endpoint ${vulnerable_url}`",
+									"            }",
+									"            pm.test(\"checks vulnerability for sequences stripped with superfluous URL-decode\", function () {",
+									"                pm.expect(value.code).to.not.equal(200);",
+									"            });",
+									"        }",
+									"    })",
+									"",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,templateValue);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "{{access_token_key}}",
+								"value": "{{valid_access_token_value}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks if the APIs allows an attacker to access file present in the server by passing the file path having various non-standard encodings, such as `..%c0%af` or `..%252f` to bypass the input filter."
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the request to check if the APIs are vulnerable to the Directory traversal attack which could allow an attacker to access arbitrary files on the server that is running an application. This might include application code and data, credentials for back-end systems, and sensitive operating system files.</br> \nTo learn more, visit [here](https://portswigger.net/web-security/file-path-traversal)"
+		},
+		{
+			"name": "SQL Injection",
+			"item": [
+				{
+					"name": "SQL injection Test 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = 'Your api is safe from SQL injection vulnerability'",
+									"",
+									"pm.test(\"checks response for WHERE clause sql injection\", function() {",
+									"    if(pm.response.text().toLowerCase().includes(\"error\")){",
+									"        text = \"Maybe your API is vulnerable to SQL injection vulnerability which allows the retrieval of hidden data\"",
+									"    }",
+									"   pm.expect(pm.response.text().toLowerCase()).to.not.include(\"error\")",
+									"});",
+									"",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,{",
+									"    text:text,",
+									"    link:\"https://portswigger.net/web-security/sql-injection\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}?{{param_key}}={{param_value}}'+OR+1=1--",
+							"host": [
+								"{{base_url}}"
+							],
+							"query": [
+								{
+									"key": "{{param_key}}",
+									"value": "{{param_value}}'+OR+1=1--"
+								}
+							]
+						},
+						"description": "This request check for the SQL injection vulnerability which can allow the retrieval of hidden data."
+					},
+					"response": []
+				},
+				{
+					"name": "SQL injection Test 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let text = 'Your API is safe from SQL injection vulnerability'",
+									"pm.test(\"checks response for vulnerability allowing login bypass\", function() {",
+									"   console.log(pm.response.code)",
+									"    if(pm.response.code === 200){",
+									"      text = \"Maybe your API is vulnerable to SQL injection vulnerability which allows login bypass to access private data\";",
+									"    }",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});",
+									"",
+									"let template = `",
+									"<div style=\"align-items:center;display:flex;justify-content:center;margin-top:16px\">",
+									"  <div style=\"padding:16px; font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc; text-align:center; vertical-align:middle; border-radius:8px;background-color:#f2f2f2\">",
+									"    <span >{{text}}</span/>",
+									"    <br/>",
+									"    <span>Learn more at <u>{{link}}</u></span>",
+									"  </div>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template,{",
+									"    text:text,",
+									"    link:\"https://portswigger.net/web-security/sql-injection\"",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "{{param_key}}",
+									"value": "{{param_value}}'--",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}",
+							"host": [
+								"{{base_url}}"
+							]
+						},
+						"description": "This request checks for the SQL injection vulnerability that may allow an attacker to login into some other user's account without knowing it's password."
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the request to check if the APIs are vulnerable to the SQL injection attack, allowing an attacker to interfere with the queries that an application makes to its database.\n\n**Note:** This folder provides the basic tests for SQL injection and doesn't cover all the scenarios."
+		},
+		{
+			"name": "CSP Evaluator",
+			"item": [
+				{
+					"name": "Evaluate CSP",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"const response = JSON.parse(pm.response.text())",
+									"const {stats,recommendations} = response",
+									"",
+									"pm.test(\"checks for CSP threats\", function() {",
+									"    pm.expect(stats.totalHigh).to.be.equal(0)",
+									"});",
+									"",
+									"const color= \"red\"",
+									"let template = `",
+									"<div style=\"margin-top:16px\">",
+									"  <table id=\"table\" style=\"font-family:Inter, OpenSans, Helvetica, Arial, sans-serif; border:1px solid #ccc;\">",
+									"        <tr style=\"background-color:#f2f2f2;\">",
+									"            <th style=\"padding:16px;\">Severity</th>",
+									"            <th style=\"padding:16px;\">Directive</th>",
+									"            <th style=\"padding:16px;\">Recommendation</th>",
+									"            <th style=\"padding:16px;\">Message</th>",
+									"        </tr>",
+									"        {{#each recommendations}}",
+									"            <tr>",
+									"                <td style=\"padding:16px;\">{{severity}}</td>",
+									"                <td style=\"padding:16px;\">{{directive}}</td>",
+									"                <td style=\"padding:16px;\">{{recommendation}}</td>",
+									"                <td style=\"padding:16px;\">{{message}}</td>",
+									"            </tr>",
+									"        {{/each}}",
+									"      </table>",
+									"  </div>",
+									"  `;",
+									"  pm.visualizer.set(template, {",
+									"      recommendations:recommendations",
+									"  });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"URL\":\"{{base_url}}\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://csper.io/api/evaluations",
+							"protocol": "https",
+							"host": [
+								"csper",
+								"io"
+							],
+							"path": [
+								"api",
+								"evaluations"
+							]
+						},
+						"description": "This request evaluates the **Content Security Policy** of an API using [**csper.io**](http://csper.io/). Check out the `Visualize` tab in the response section to view the **Content Security Policy** analysis."
+					},
+					"response": []
+				}
+			],
+			"description": "This folder contains the request to evaluate the Content Security Policy used for an API or an URL. \n\nTo lean more, visit [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)"
+		}
+	]
+}
