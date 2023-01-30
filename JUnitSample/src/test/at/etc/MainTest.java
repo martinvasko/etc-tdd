@@ -4,7 +4,9 @@ import org.junit.jupiter.api.*;
 
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class MainTest {
 
@@ -24,6 +26,12 @@ public class MainTest {
     @Test
     public void simpleTest() {
         assertTrue(true);
+    }
+
+    @Test
+    public void assumeSomething() {
+        assumeTrue(10 > 1);
+        assertEquals((9 + 1), 10);
     }
 
     @AfterEach
